@@ -221,8 +221,8 @@ impl<Granularity: PmpGranularity> NAPOTRegionSpec<Granularity> {
         } else {
             let trailing_ones: usize = self.pmpaddr.trailing_ones() as usize;
             let size = 0b1000_usize << trailing_ones;
-            let base_addr: usize = (self.pmpaddr >> trailing_ones) // Remove the trailing ones
-                << (trailing_ones + 2); // Restore the lower bits to zero and shift left by 2 to get the address
+            // Remove the trailing ones and then restore the lower bits to zero and shift left by 2 to get the address
+            let base_addr: usize = (self.pmpaddr >> trailing_ones) << (trailing_ones + 2);
             base_addr..=base_addr + (size - 1)
         }
     }
