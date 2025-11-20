@@ -16,3 +16,8 @@ kernel = { path = "../../kernel" }
 
 [lints]
 workspace = true
+
+[features]
+# Selects PMP variant with granularity of 4096 bytes
+# over the default EPMP configuration
+pmp4096 = []

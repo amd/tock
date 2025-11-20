@@ -22,12 +22,46 @@ use crate::interrupts;
 
 use virtio::transports::mmio::VirtIOMMIODevice;
 
-type QemuRv32VirtPMP = rv32i::pmp::PMPUserMPU<
-    5,
-    rv32i::pmp::kernel_protection_mml_epmp::KernelProtectionMMLEPMP<16, 5>,
->;
-
 pub type QemuRv32VirtClint<'a> = sifive::clint::Clint<'a, Freq10MHz>;
+
+#[cfg(not(feature = "pmp4096"))]
+mod pmp_variant {
+    pub type KernelProtection =
+        rv32i::pmp::kernel_protection_mml_epmp::KernelProtectionMMLEPMP<16, 5>;
+
+    pub use rv32i::pmp::kernel_protection_mml_epmp::{
+        FlashRegion, KernelTextRegion, MMIORegion, RAMRegion,
+    };
+    pub type QemuRv32VirtPMP = rv32i::pmp::PMPUserMPU<5, KernelProtection>;
+}
+
+#[cfg(feature = "pmp4096")]
+mod pmp_variant {
+    pub struct PmpGranularity4096;
+    impl rv32i::pmp::PmpGranularity for PmpGranularity4096 {
+        // 2^(G+2) = 4096  => G = 10
+        const G: u8 = 10;
+    }
+    pub type KernelProtection =
+        rv32i::pmp::kernel_protection::KernelProtectionPMP<16, PmpGranularity4096>;
+
+    pub use rv32i::pmp::kernel_protection::{FlashRegion, KernelTextRegion, MMIORegion, RAMRegion};
+    pub type QemuRv32VirtPMP = rv32i::pmp::PMPUserMPU<4, KernelProtection>;
+
+    // This is a workaround to pass the PMP granularity to the linker script conditionally.
+    // in production it should be defined in the linker script directly. The value of the symbol
+    // is not important, only its definition to be visible to the linker script.
+    core::arch::global_asm!(
+        r#"
+        .globl  SET_MPU_GRANULARITY_TO_LINKER
+        .set    SET_MPU_GRANULARITY_TO_LINKER, 0
+    "#
+    );
+}
+
+pub use pmp_variant::{
+    FlashRegion, KernelProtection, KernelTextRegion, MMIORegion, QemuRv32VirtPMP, RAMRegion,
+};
 
 pub struct QemuRv32VirtChip<'a, I: InterruptService + 'a> {
     userspace_kernel_boundary: rv32i::syscall::SysCall,
@@ -82,7 +116,7 @@ impl<'a, I: InterruptService + 'a> QemuRv32VirtChip<'a, I> {
     pub unsafe fn new(
         plic_interrupt_service: &'a I,
         timer: &'a QemuRv32VirtClint<'a>,
-        pmp: rv32i::pmp::kernel_protection_mml_epmp::KernelProtectionMMLEPMP<16, 5>,
+        pmp: KernelProtection,
     ) -> Self {
         Self {
             userspace_kernel_boundary: rv32i::syscall::SysCall::new(),

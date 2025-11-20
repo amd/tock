@@ -40,6 +40,7 @@
  */
 
 PAGE_SIZE = DEFINED(PAGE_SIZE) ? PAGE_SIZE : 512;
+MPU_GRANULARITY = DEFINED(MPU_GRANULARITY) ? MPU_GRANULARITY : 4;
 
 SECTIONS
 {
@@ -59,7 +60,7 @@ SECTIONS
     /* STATIC ELEMENTS FOR TOCK KERNEL */
     .text :
     {
-        . = ALIGN(4);
+        . = ALIGN(MPU_GRANULARITY);
         _textstart = .;     /* Symbol expected by some MS build toolchains */
         _stext = .;         /* First of standard s,e (start/end) pair */
 
@@ -209,7 +210,9 @@ SECTIONS
      */
     .storage :
     {
+        /* This will get aligned to the maximum of PAGE_SIZE and MPU_GRANULARITY */
         . = ALIGN(PAGE_SIZE);
+        . = ALIGN(MPU_GRANULARITY);
         _sstorage = .;
         *(.storage* storage*)
         _estorage = .;
@@ -218,7 +221,8 @@ SECTIONS
     . = ALIGN(PAGE_SIZE);
 
     /* Mark the end of static elements */
-    . = ALIGN(4);
+    /* The text section is expected to align to MPU granularity */
+    . = ALIGN(MPU_GRANULARITY);
     _erodata = .;
     _etext = .;
     _textend = .;   /* alias for _etext expected by some MS toolchains */

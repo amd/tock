@@ -17,6 +17,7 @@ use kernel::platform::SyscallDriverLookup;
 use kernel::utilities::registers::interfaces::ReadWriteable;
 use kernel::utilities::single_thread_value::SingleThreadValue;
 use kernel::{create_capability, debug, static_init};
+use qemu_rv32_virt_chip::chip;
 use qemu_rv32_virt_chip::chip::{QemuRv32VirtChip, QemuRv32VirtDefaultPeripherals};
 use rv32i::csr;
 
@@ -200,29 +201,31 @@ pub unsafe fn start() -> (
     // Set up memory protection immediately after setting the trap handler, to
     // ensure that much of the board initialization routine runs with ePMP
     // protection.
-    let epmp = rv32i::pmp::kernel_protection_mml_epmp::KernelProtectionMMLEPMP::new(
-        rv32i::pmp::kernel_protection_mml_epmp::FlashRegion(
+
+    // Use the definitions of the kernel-protection unit re-exported by the Chip crate
+    let pmp = chip::KernelProtection::new(
+        chip::FlashRegion(
             rv32i::pmp::NAPOTRegionSpec::from_start_end(
                 core::ptr::addr_of!(_sflash),
                 core::ptr::addr_of!(_eflash),
             )
             .unwrap(),
         ),
-        rv32i::pmp::kernel_protection_mml_epmp::RAMRegion(
+        chip::RAMRegion(
             rv32i::pmp::NAPOTRegionSpec::from_start_end(
                 core::ptr::addr_of!(_ssram),
                 core::ptr::addr_of!(_esram),
             )
             .unwrap(),
         ),
-        rv32i::pmp::kernel_protection_mml_epmp::MMIORegion(
+        chip::MMIORegion(
             rv32i::pmp::NAPOTRegionSpec::from_start_size(
                 core::ptr::null::<u8>(), // start
                 0x20000000,              // size
             )
             .unwrap(),
         ),
-        rv32i::pmp::kernel_protection_mml_epmp::KernelTextRegion(
+        chip::KernelTextRegion(
             rv32i::pmp::TORRegionSpec::from_start_end(
                 core::ptr::addr_of!(_stext),
                 core::ptr::addr_of!(_etext),
@@ -622,7 +625,7 @@ pub unsafe fn start() -> (
 
     let chip = static_init!(
         QemuRv32VirtChip<QemuRv32VirtDefaultPeripherals>,
-        QemuRv32VirtChip::new(peripherals, hardware_timer, epmp),
+        QemuRv32VirtChip::new(peripherals, hardware_timer, pmp),
     );
     PANIC_RESOURCES.get().map(|resources| {
         resources.chip.put(chip);

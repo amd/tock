@@ -32,3 +32,10 @@ tock_build_scripts = { path = "../build_scripts" }
 
 [lints]
 workspace = true
+
+[features]
+# Enable to test with PMP instead of EPMP, with granularity of 4096 bytes
+# pass the feature to the chip crate
+pmp4096 = ["qemu_rv32_virt_chip/pmp4096"]
+trace_syscalls = ["kernel/trace_syscalls"]
+debug_load_processes = ["kernel/debug_load_processes"]

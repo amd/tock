@@ -10,7 +10,7 @@ use kernel::debug;
 use kernel::platform::chip::InterruptService;
 use kernel::utilities::registers::interfaces::{ReadWriteable, Readable};
 use rv32i::csr::{mcause, mie::mie, CSR};
-use rv32i::pmp::{kernel_protection::KernelProtectionPMP, PMPUserMPU};
+use rv32i::pmp::{kernel_protection::KernelProtectionPMP, PMPUserMPU, PmpGranularity4};
 use rv32i::syscall::SysCall;
 
 use crate::interrupt_controller::VexRiscvInterruptController;
@@ -26,7 +26,7 @@ pub struct LiteXVexRiscv<I: 'static + InterruptService> {
     soc_identifier: &'static str,
     userspace_kernel_boundary: SysCall,
     interrupt_controller: &'static VexRiscvInterruptController,
-    pmp_mpu: PMPUserMPU<4, KernelProtectionPMP<16>>,
+    pmp_mpu: PMPUserMPU<4, KernelProtectionPMP<16, PmpGranularity4>>,
     interrupt_service: &'static I,
 }
 
@@ -34,7 +34,7 @@ impl<I: 'static + InterruptService> LiteXVexRiscv<I> {
     pub unsafe fn new(
         soc_identifier: &'static str,
         interrupt_service: &'static I,
-        pmp: KernelProtectionPMP<16>,
+        pmp: KernelProtectionPMP<16, PmpGranularity4>,
     ) -> Self {
         Self {
             soc_identifier,
@@ -60,7 +60,7 @@ impl<I: 'static + InterruptService> LiteXVexRiscv<I> {
 }
 
 impl<I: 'static + InterruptService> kernel::platform::chip::Chip for LiteXVexRiscv<I> {
-    type MPU = PMPUserMPU<4, KernelProtectionPMP<16>>;
+    type MPU = PMPUserMPU<4, KernelProtectionPMP<16, PmpGranularity4>>;
     type UserspaceKernelBoundary = SysCall;
     type ThreadIdProvider = rv32i::thread_id::RiscvThreadIdProvider;
 

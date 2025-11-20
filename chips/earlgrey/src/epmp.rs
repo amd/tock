@@ -13,7 +13,8 @@ use kernel::platform::mpu;
 use kernel::utilities::registers::FieldValue;
 use rv32i::csr;
 use rv32i::pmp::{
-    format_pmp_entries, pmpcfg_octet, NAPOTRegionSpec, TORRegionSpec, TORUserPMP, TORUserPMPCFG,
+    format_pmp_entries, pmpcfg_octet, NAPOTRegionSpec, PmpGranularity4, TORRegionSpec, TORUserPMP,
+    TORUserPMPCFG,
 };
 
 // ---------- EarlGrey ePMP implementation named constants ---------------------
@@ -38,26 +39,26 @@ const TOR_USER_ENTRIES_OFFSET_DEBUG_DISABLE: usize = 4;
 ///
 /// Configured in the PMP as a `NAPOT` region.
 #[derive(Copy, Clone, Debug)]
-pub struct FlashRegion(pub NAPOTRegionSpec);
+pub struct FlashRegion(pub NAPOTRegionSpec<PmpGranularity4>);
 
 /// The EarlGrey SOC's RAM region address range.
 ///
 /// Configured in the PMP as a `NAPOT` region.
 #[derive(Copy, Clone, Debug)]
-pub struct RAMRegion(pub NAPOTRegionSpec);
+pub struct RAMRegion(pub NAPOTRegionSpec<PmpGranularity4>);
 
 /// The EarlGrey SOC's MMIO region address range.
 ///
 /// Configured in the PMP as a `NAPOT` region.
 #[derive(Copy, Clone, Debug)]
-pub struct MMIORegion(pub NAPOTRegionSpec);
+pub struct MMIORegion(pub NAPOTRegionSpec<PmpGranularity4>);
 
 /// The EarlGrey SOC's PMP region specification for the kernel `.text` section.
 ///
 /// This is to be made accessible to machine-mode as read-execute. Configured in
 /// the PMP as a `TOR` region.
 #[derive(Copy, Clone, Debug)]
-pub struct KernelTextRegion(pub TORRegionSpec);
+pub struct KernelTextRegion(pub TORRegionSpec<PmpGranularity4>);
 
 /// The EarlGrey SOC's RISC-V Debug Manager memory region.
 ///
@@ -68,7 +69,7 @@ pub struct KernelTextRegion(pub TORRegionSpec);
 /// machine-mode lockdown (MML), but still machine-mode whitelist policy (MMWP),
 /// instead.
 #[derive(Copy, Clone, Debug)]
-pub struct RVDMRegion(pub NAPOTRegionSpec);
+pub struct RVDMRegion(pub NAPOTRegionSpec<PmpGranularity4>);
 
 // ---------- EarlGrey SoC ePMP JTAG Debugging Configuration -------------------
 
@@ -1139,6 +1140,8 @@ impl<const HANDOVER_CONFIG_CHECK: bool> TORUserPMP<{ TOR_USER_REGIONS_DEBUG_ENAB
     // Don't require any const-assertions in the EarlGreyEPMP.
     const CONST_ASSERT_CHECK: () = ();
 
+    type Granularity = PmpGranularity4;
+
     fn available_regions(&self) -> usize {
         self.user_available_regions::<TOR_USER_REGIONS_DEBUG_ENABLE>()
     }
@@ -1168,6 +1171,8 @@ impl<const HANDOVER_CONFIG_CHECK: bool> TORUserPMP<{ TOR_USER_REGIONS_DEBUG_DISA
 {
     // Don't require any const-assertions in the EarlGreyEPMP.
     const CONST_ASSERT_CHECK: () = ();
+
+    type Granularity = PmpGranularity4;
 
     fn available_regions(&self) -> usize {
         self.user_available_regions::<TOR_USER_REGIONS_DEBUG_DISABLE>()

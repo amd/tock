@@ -11,6 +11,22 @@ QEMU_CMD              := qemu-system-riscv32
 WORKING_QEMU_VERSIONS := 8.2.7, 9.1.3, 9.2.3, 10.0.2
 BROKEN_QEMU_VERSIONS  := <= 8.1.5
 
+ifneq ($(USE_PMP4096),)
+FEATURES += pmp4096
+QEMU_PMP_CONFIG = -global driver=riscv-cpu,property=pmp,value=true
+QEMU_PMP_CONFIG += -global driver=riscv-cpu,property=pmp-granularity,value=4096
+else
+QEMU_PMP_CONFIG = -global driver=riscv-cpu,property=smepmp,value=true
+endif
+
+ifneq ($(DEBUG_LOAD_PROCESSES),)
+FEATURES += debug_load_processes
+endif
+
+ifneq ($(FEATURES),)
+EXTRA_FLAGS += --features "$(FEATURES)"
+endif
+
 # Whether a VirtIO network device shall be attached to the QEMU
 # machine, and which backend should be used. The following options are
 # available:
@@ -65,7 +81,7 @@ QEMU_BASE_CMDLINE := \
   $(QEMU_CMD) \
     -machine virt \
     -semihosting \
-    -global driver=riscv-cpu,property=smepmp,value=true \
+    $(QEMU_PMP_CONFIG) \
     -global virtio-mmio.force-legacy=false \
     -device virtio-rng-device \
     -device virtio-keyboard-device \

@@ -94,6 +94,8 @@ else
   DEVNULL = > /dev/null
 endif
 
+EXTRA_FLAGS += $(VERBOSE_FLAGS)
+
 # Allow users to opt out of using rustup.
 ifeq ($(NO_RUSTUP),)
 # Validate that rustup exists.
@@ -257,12 +259,12 @@ all: release
 # binary. This makes checking for Rust errors much faster.
 .PHONY: check
 check:
-	$(Q)$(CARGO) check $(VERBOSE_FLAGS)
+	$(Q)$(CARGO) check $(EXTRA_FLAGS)
 
 
 .PHONY: clean
 clean::
-	$(Q)$(CARGO) clean $(VERBOSE_FLAGS)
+	$(Q)$(CARGO) clean $(EXTRA_FLAGS)
 
 .PHONY: release
 release:  $(TARGET_PATH)/release/$(PLATFORM).bin
@@ -275,7 +277,7 @@ debug-lst:  $(TARGET_PATH)/debug/$(PLATFORM).lst
 
 .PHONY: doc
 doc:
-	$(Q)$(CARGO) --color=always doc $(VERBOSE_FLAGS) --release --package $(PLATFORM)
+	$(Q)$(CARGO) --color=always doc $(EXTRA_FLAGS) --release --package $(PLATFORM)
 
 
 .PHONY: lst
@@ -314,7 +316,7 @@ memory: $(TARGET_PATH)/release/$(PLATFORM).elf
 
 
 $(TOCK_ROOT_DIRECTORY)tools/build/sha256sum/target/debug/sha256sum:
-	$(Q)$(CARGO) build $(VERBOSE_FLAGS) --manifest-path $(TOCK_ROOT_DIRECTORY)tools/build/sha256sum/Cargo.toml
+	$(Q)$(CARGO) build $(EXTRA_FLAGS) --manifest-path $(TOCK_ROOT_DIRECTORY)tools/build/sha256sum/Cargo.toml
 
 
 # Cargo-drivers
@@ -323,10 +325,10 @@ $(TOCK_ROOT_DIRECTORY)tools/build/sha256sum/target/debug/sha256sum:
 
 .PHONY: $(TARGET_PATH)/release/$(PLATFORM)
 $(TARGET_PATH)/release/$(PLATFORM):
-	$(Q)$(CARGO) rustc $(VERBOSE_FLAGS) --bin $(PLATFORM) --release
+	$(Q)$(CARGO) rustc $(EXTRA_FLAGS) --bin $(PLATFORM) --release
 	$(Q)$(SIZE) $(SIZE_FLAGS) $@
 
 .PHONY: $(TARGET_PATH)/debug/$(PLATFORM)
 $(TARGET_PATH)/debug/$(PLATFORM):
-	$(Q)$(CARGO) build $(VERBOSE_FLAGS) --bin $(PLATFORM)
+	$(Q)$(CARGO) build $(EXTRA_FLAGS) --bin $(PLATFORM)
 	$(Q)$(SIZE) $(SIZE_FLAGS) $@

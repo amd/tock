@@ -30,4 +30,6 @@ SECTIONS {
     _esram  = ORIGIN(ram) + LENGTH(ram);
 }
 
+MPU_GRANULARITY = DEFINED(SET_MPU_GRANULARITY_TO_LINKER) ? 4096 : 4;
+
 INCLUDE tock_kernel_layout.ld

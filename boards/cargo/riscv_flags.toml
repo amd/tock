@@ -13,4 +13,5 @@ rustflags = [
   # Ensure relocations generated is eligible for linker relaxation.
   # This provides huge space savings.
   "-C", "target-feature=+relax",
+  "-C", "link-args=-Map=kernel.map"
 ]
