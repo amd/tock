@@ -201,14 +201,6 @@ impl<Granularity: PmpGranularity> NAPOTRegionSpec<Granularity> {
         }
     }
 
-    /// Retrieve a `pmpaddrX`-CSR compatible representation of this
-    /// [`NAPOTRegionSpec`]'s address and length. For this value to be valid in
-    /// a `CSR` register, the `pmpcfgX` octet's `A` (address mode) value
-    /// belonging to this `pmpaddrX`-CSR must be set to `NAPOT` (0b11).
-    /*pub fn pmpaddr(&self) -> usize {
-        self.pmpaddr
-    } */
-
     /// Return the range of physical addresses covered by this PMP region.
     ///
     /// This follows the regular Rust range semantics (start inclusive, end
