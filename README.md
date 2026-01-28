@@ -18,7 +18,7 @@ kernel.
 
 [tock-ci]: https://github.com/tock/tock/actions/workflows/ci.yml
 
-Tock 2.x!
+Tock 2.x! Test
 ---------
 
 Tock is now on its second major release! For a summary of the latest new
