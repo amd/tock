@@ -3,7 +3,7 @@
 # Copyright Tock Contributors 2025.
 
 [project]
-name = "svg2regs"
+name = "svd2regs"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
